@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Document</title>
+    <style>
+     #camera{
+        float: left;
+        margin: 20px;
+    }
+    #contentHolder{
+        width: 300px;
+        height: 300px;
+        margin-bottom: 10px;
+    }
+    #btn_snap{
+        margin: 0 auto;
+        border: 1px solid #f0f0f0;
+        background: #5CACEE;
+        color: #FFF;
+        width: 100px;
+        height: 36px;
+        line-height: 36px;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        cursor: pointer;
+        /*禁止选择*/
+        -webkit-touch-callout: none; /* iOS Safari */
+        -webkit-user-select: none; /* Chrome/Safari/Opera */
+        -khtml-user-select: none; /* Konqueror */
+        -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+        user-select: none; /* Non-prefixed version, currently not supported by any browser */
+    }
+    #imgBoxxx{
+        width: 200px;
+        margin: 60px 20px 20px;
+    }
+    </style>
+  </head>
+  <body>
+    <!-- <canvas id="myCanvas" width="200" height="100"
+    style="border:1px solid #000000;">
+    </canvas> -->
+
+    <div id="camera">
+      <div id="contentHolder">
+        <video id="video" width="300" height="300" autoplay></video>
+        <canvas
+          style="display:none;"
+          id="canvas"
+          width="300"
+          height="300"
+        ></canvas>
+      </div>
+      <div id="btn_snap">拍照</div>
+    </div>
+
+    <script>
+      // var c=document.getElementById("myCanvas")
+      // var ctx=c.getContext("2d")
+      // 设置画笔的颜色
+      // ctx.fillStyle="#00FF00"
+      // ctx.fillRect(0,0,150,75)
+
+      // ctx.moveTo(0,0);
+      // ctx.lineTo(200,100);
+      // ctx.stroke()
+
+      // ctx.beginPath();
+      // ctx.arc(95,50,40,0,2*Math.PI);
+      // ctx.stroke();
+
+      // ctx.font="30px Arial";
+      // ctx.strokeText("Hello World",10,50);
+      // 创建渐变
+      // var grd=ctx.createLinearGradient(0,0,200,0);
+      // grd.addColorStop(0,"red");
+      // grd.addColorStop(1,"purple");
+
+      // // 填充渐变
+      // ctx.fillStyle=grd;
+      // ctx.fillRect(10,10,150,80);
+
+      // 创建渐变
+      // var grd=ctx.createRadialGradient(75,50,5,90,60,100);
+      // grd.addColorStop(0,"red");
+      // grd.addColorStop(1,"white");
+
+      // // 填充渐变
+      // ctx.fillStyle=grd;
+      // ctx.fillRect(10,10,150,80);
+
+      var canvas = document.getElementById("canvas"),
+        pzBtn = document.getElementById("btn_snap"),
+        context = canvas.getContext("2d"),
+        video = document.getElementById("video");
+    alert('该页面会调用您的摄像头')
+    // 旧版本浏览器可能根本不支持mediaDevices，我们首先设置一个空对象
+    if (navigator.mediaDevices === undefined) {
+        navigator.mediaDevices = {};
+    }
+    // 一些浏览器实现了部分mediaDevices，我们不能只分配一个对象
+    // 使用getUserMedia，因为它会覆盖现有的属性。
+    // 这里，如果缺少getUserMedia属性，就添加它。
+    if (navigator.mediaDevices.getUserMedia === undefined) {
+        navigator.mediaDevices.getUserMedia = function (constraints) {
+            // 首先获取现存的getUserMedia(如果存在)
+            var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+            // 有些浏览器不支持，会返回错误信息
+            // 保持接口一致
+            if (!getUserMedia) {
+                return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+            }
+            //否则，使用Promise将调用包装到旧的navigator.getUserMedia
+            return new Promise(function (resolve, reject) {
+                getUserMedia.call(navigator, constraints, resolve, reject);
+            });
+        }
+    }
+    var constraints = { audio: false, video: {width: 720,height:720} }
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(function (stream) {
+            var video = document.querySelector('video');
+            // 旧的浏览器可能没有srcObject
+            if ("srcObject" in video) {
+                video.srcObject = stream;
+            } else {
+                //避免在新的浏览器中使用它，因为它正在被弃用。
+                video.src = window.URL.createObjectURL(stream);
+            }
+            video.onloadedmetadata = function (e) {
+                video.play();
+            };
+        })
+        .catch(function (err) {
+            console.log(err.name + ": " + err.message);
+        });
+
+
+
+    pzBtn.addEventListener("click", function () {
+        // 点击，canvas画图
+        context.drawImage(video, 0, 0, 300, 300);
+        // 获取图片base64链接
+        var image = canvas.toDataURL('image/png');
+        console.log(image)
+        // 定义一个img
+        var img = new Image();
+        //设置属性和src
+        img.id = "imgBoxxx";
+        img.src = image;
+        //将图片添加到页面中
+        document.body.appendChild(img);
+
+        // base64转文件
+        function dataURLtoFile(dataurl, filename) {
+            var arr = dataurl.split(','), mime = arr[0].match(/:(.*?);/)[1],
+                bstr = atob(arr[1]), n = bstr.length, u8arr = new Uint8Array(n);
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+            return new File([u8arr], filename, {type: mime});
+        }
+        console.log(dataURLtoFile(image, 'aa.png'));
+    });
+    </script>
+  </body>
+</html>
